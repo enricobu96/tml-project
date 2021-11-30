@@ -5,6 +5,8 @@ import pandas as pd
 from datetime import datetime
 from sklearn.model_selection import  train_test_split
 from sklearn.linear_model import LogisticRegression
+from aif360.metrics import ClassificationMetric
+
 pd.set_option('display.max_columns', None)
 _night = ['22:', '23:', '00:', '01:', '02:', '03:', '04:', '05:', '06:', '07:']
 
@@ -27,6 +29,14 @@ y = data['is_arrested']
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
 clf = LogisticRegression().fit(X_train, y_train)
-print(clf.score(X_test, y_test))
 
+y_pred = clf.predict(X_test)
 
+priv_groups = [{'driver_race': 4}]
+unpriv_groups = [{'driver_race': [0,1,2,3]}]
+
+entire_test = pd.concat([X_test, y_test], axis=1)
+entire_test_pred = pd.concat([X_test, y_pred], axis=1)
+
+class_metric = ClassificationMetric(entire_test, y_pred, unprivileged_groups=unpriv_groups, privileged_groups=priv_groups)
+print(class_metric.false_omission_rate())
